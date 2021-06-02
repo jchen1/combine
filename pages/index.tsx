@@ -326,7 +326,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
         <Grid xs={24} md={24}>
           <Button
             type="success"
-            onClick={async (e) => {
+            onClick={async (_e) => {
               await copyShareLink(player);
               setCopied(true);
               setTimeout(() => setCopied(false), 5000);
