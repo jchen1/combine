@@ -142,7 +142,7 @@ const IndexPage = () => {
               <Spacer x={1} />
               <Checkbox
                 checked={compareVsPosition}
-                onChange={(e) => setCompareVsPosition(!compareVsPosition)}
+                onChange={(_e) => setCompareVsPosition(!compareVsPosition)}
               />
             </Row>
             <Spacer y={1} />

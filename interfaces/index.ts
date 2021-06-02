@@ -63,9 +63,9 @@ export type CombineResultWithPercentiles = {
   broadJump?: RawPercentileTuple;
   threeCone?: RawPercentileTuple;
   shuttleRun?: RawPercentileTuple;
-  year: number;
-  team: string;
-  av: number;
-  round: number;
-  pick: number;
+  year?: number;
+  team?: string;
+  av?: number;
+  round?: number;
+  pick?: number;
 };
