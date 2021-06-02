@@ -9,9 +9,10 @@ import {
   Select,
   Spacer,
   Text,
+  Toggle,
 } from "@geist-ui/react";
 import { Radar } from "react-chartjs-2";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Layout from "../components/Layout";
 import {
@@ -19,6 +20,7 @@ import {
   // combinePercentileData,
   orderedCombineKeys,
   combineKeyToUnit,
+  mostSimilarPlayers,
 } from "../utils/data";
 import { stringToColor } from "../utils/colors";
 import { CombineResult, positions } from "../interfaces";
@@ -31,7 +33,7 @@ function stringOrFirst(s: string | string[]): string {
   return (s && s.length > 0 && s[0]) || "";
 }
 
-function copyShareLink(player: CombineResult): Promise<void> {
+function getShareLink(player: CombineResult) {
   const baseUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}`
@@ -40,14 +42,17 @@ function copyShareLink(player: CombineResult): Promise<void> {
     (p, [k, v]) => ({ ...p, [k]: `${v}` }),
     {}
   );
-  const s = `${baseUrl}?${new URLSearchParams(params).toString()}`;
-  return navigator.clipboard.writeText(s);
+  return `${baseUrl}?${new URLSearchParams(params).toString()}`;
+}
+
+function copyShareLink(player: CombineResult): Promise<void> {
+  return navigator.clipboard.writeText(getShareLink(player));
 }
 
 const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
   const [copied, setCopied] = useState(false);
 
-  const [compareVsPosition, setCompareVsPosition] = useState(true);
+  const [comparePlayers, setComparePlayers] = useState(true);
 
   const [position, setPosition] = useState(
     stringOrFirst(query.position) || "WR"
@@ -91,33 +96,48 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
     shuttleRun,
   };
 
-  // const allData = compareVsPosition
-  //   ? combinePercentileData.filter((datum) => datum.position === position)
-  //   : combinePercentileData;
+  useEffect(() => {
+    history.replaceState(null, "", getShareLink(player));
+  }, [
+    position,
+    name,
+    height,
+    weight,
+    fortyYard,
+    verticalJump,
+    benchReps,
+    broadJump,
+    threeCone,
+    shuttleRun,
+  ]);
 
   const playerColor = stringToColor(name);
 
   const data = {
     labels: [
-      "Height",
-      "Weight",
-      "40yd",
-      "Vertical Jump (in)",
-      "Bench Press",
-      "Broad Jump (in)",
-      "Three Cone",
-      "Shuttle Run",
-    ],
+      height && "Height",
+      weight && "Weight",
+      fortyYard && "40y Dash",
+      verticalJump && "Vertical Jump",
+      benchReps && "Bench Press",
+      broadJump && "Broad Jump",
+      threeCone && "Three Cone Drill",
+      shuttleRun && "20y Shuttle Run",
+    ].filter((x) => x),
     datasets: [
       {
         label: `${name} (${position})`,
-        data: orderedCombineKeys.map((key) =>
-          combinePercentRank(
-            key,
-            player[key] as number | undefined,
-            compareVsPosition ? position : ""
+        data: orderedCombineKeys
+          .map(
+            (key) =>
+              player[key] &&
+              combinePercentRank(
+                key,
+                player[key] as number | undefined,
+                position
+              )
           )
-        ),
+          .filter((x) => x),
         player,
         backgroundColor: `hsla(${playerColor.h}, ${playerColor.s}%, ${playerColor.l}%, 0.5)`,
         borderColor: `hsla(${playerColor.h}, ${playerColor.s}%, ${playerColor.l}%, 1)`,
@@ -125,31 +145,37 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
         pointRadius: 5,
         pointBackgroundColor: `hsla(${playerColor.h}, ${playerColor.s}%, ${playerColor.l}%, 1)`,
       },
-    ],
-    // todo; comparables
-    // .concat(
-    //   allData.slice(0, 0).map((datum) => {
-    //     const { h, s, l } = stringToColor(datum.player);
-    //     const key = compareVsPosition ? "positionPercentile" : "percentile";
+    ].concat(
+      comparePlayers
+        ? mostSimilarPlayers(player)
+            .slice(0, 3)
+            .map((datum) => {
+              const { h, s, l } = stringToColor(datum.player);
 
-    //     return {
-    //       label: `${datum.player} (${datum.position})`,
-    //       data: [
-    //         datum.height[key],
-    //         datum.weight[key],
-    //         datum.fortyYard[key],
-    //         datum.verticalJump[key],
-    //         datum.benchReps[key],
-    //         datum.broadJump[key],
-    //         datum.threeCone[key],
-    //         datum.shuttleRun[key],
-    //       ],
-    //       backgroundColor: `hsla(${h}, ${s}%, ${l}%, 0.2)`,
-    //       borderColor: `hsla(${h}, ${s}%, ${l}%, 1)`,
-    //       borderWidth: 1,
-    //     };
-    //   })
-    // ),
+              return {
+                label: `${datum.player} (${datum.position})`,
+                data: orderedCombineKeys
+                  .map(
+                    (key) =>
+                      player[key] &&
+                      (combinePercentRank(
+                        key,
+                        datum[key] as number | undefined,
+                        position
+                      ) ||
+                        0)
+                  )
+                  .filter((x) => x),
+                player: datum,
+                backgroundColor: `hsla(${h}, ${s}%, ${l}%, 0.2)`,
+                borderColor: `hsla(${h}, ${s}%, ${l}%, 1)`,
+                borderWidth: 1,
+                pointRadius: 5,
+                pointBackgroundColor: `hsla(${h}, ${s}%, ${l}%, 1)`,
+              };
+            })
+        : []
+    ),
   };
   const options = {
     scale: {
@@ -163,9 +189,9 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
             const { label, player, data } = dataset;
             const key = orderedCombineKeys[dataIndex];
             if (player) {
-              return `${label}: ${player[key]}${combineKeyToUnit[key]} (${data[
-                dataIndex
-              ].toFixed(2)}%)`;
+              return `${label}: ${player[key] || 0}${
+                combineKeyToUnit[key]
+              } (${data[dataIndex].toFixed(2)}%)`;
             }
           },
         },
@@ -173,19 +199,20 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
     },
   };
   return (
-    <Layout title="Combine Comparator">
-      <h1>NFL Combine Comparator</h1>
+    <Layout title="NFL Combine Comparator">
+      <Text h1>NFL Combine Comparator</Text>
       {/* todo: mobile ordering */}
       <Grid.Container gap={2} justify="center" wrap="wrap">
         <Grid xs={24} md={16}>
           <Card>
             <Row align="middle" justify="end">
-              <Text>Compare vs position</Text>
-              <Spacer x={1} />
-              <Checkbox
-                checked={compareVsPosition}
-                onChange={(_e) => setCompareVsPosition(!compareVsPosition)}
+              <Toggle
+                checked={comparePlayers}
+                size="large"
+                onChange={(_e) => setComparePlayers(!comparePlayers)}
               />
+              <Spacer x={0.5} />
+              <Text>Show comparable players</Text>
             </Row>
             <Spacer y={1} />
             <Radar type="radar" data={data} options={options} />
@@ -281,7 +308,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               onChange={(e) => setBenchReps(e.target.valueAsNumber)}
               onBlur={(_e) => setBenchReps(Math.round(benchReps))}
             >
-              <Text b>225 lb Bench Press</Text>
+              <Text b>225lb Bench Press</Text>
             </Input>
             <Spacer y={1} />
             <Input
@@ -306,7 +333,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               onChange={(e) => setThreeCone(e.target.valueAsNumber)}
               onBlur={(_e) => setThreeCone(parseFloat(threeCone.toFixed(2)))}
             >
-              <Text b>Three Cone</Text>
+              <Text b>Three Cone Drill</Text>
             </Input>
             <Spacer y={1} />
             <Input

@@ -201,3 +201,33 @@ export const combineKeyToUnit: Record<string, string> = {
   threeCone: "s",
   shuttleRun: "s",
 };
+
+function cosineSim(a: number[], b: number[]) {
+  let dp = 0,
+    mA = 0,
+    mB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dp += a[i] * b[i];
+    mA += a[i] * a[i];
+    mB += b[i] * b[i];
+  }
+  return dp / (Math.sqrt(mA) * Math.sqrt(mB));
+}
+
+function playerSimilarity(a: CombineResult, b: CombineResult) {
+  return cosineSim(
+    orderedCombineKeys.map((k) => a[k] as number),
+    orderedCombineKeys.map((k) => b[k] as number)
+  );
+}
+
+export function mostSimilarPlayers(player: CombineResult) {
+  return combineData
+    .filter((p) => p.position === player.position)
+    .map((comparator) => ({
+      ...comparator,
+      sim: playerSimilarity(comparator, player),
+    }))
+    .sort((a, b) => b.sim - a.sim)
+    .slice(0, 10);
+}
