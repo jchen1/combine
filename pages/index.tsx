@@ -1,7 +1,6 @@
 import {
   Button,
   Card,
-  Checkbox,
   Divider,
   Grid,
   Input,
@@ -10,6 +9,7 @@ import {
   Spacer,
   Text,
   Toggle,
+  useMediaQuery,
 } from "@geist-ui/react";
 import { Radar } from "react-chartjs-2";
 import { useEffect, useState } from "react";
@@ -50,6 +50,8 @@ function copyShareLink(player: CombineResult): Promise<void> {
 }
 
 const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
+  const isDesktop = useMediaQuery("md", { match: "up" });
+
   const [copied, setCopied] = useState(false);
 
   const [comparePlayers, setComparePlayers] = useState(true);
@@ -201,11 +203,12 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
   return (
     <Layout title="NFL Combine Comparator">
       <Text h1>NFL Combine Comparator</Text>
-      {/* todo: mobile ordering */}
-      <Grid.Container gap={2} justify="center" wrap="wrap">
-        <Grid xs={24} md={16}>
+      <Text>Test how you stack up compared to NFL players!</Text>
+      <Spacer y={1} />
+      <Grid.Container gap={2} justify="center" wrap="wrap" id="main">
+        <Grid xs={24} md={16} id="chart">
           <Card>
-            <Row align="middle" justify="end">
+            <Row align="middle" justify={isDesktop ? "end" : "center"}>
               <Toggle
                 checked={comparePlayers}
                 size="large"
@@ -214,11 +217,11 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               <Spacer x={0.5} />
               <Text>Show comparable players</Text>
             </Row>
-            <Spacer y={1} />
+            {isDesktop && <Spacer y={1} />}
             <Radar type="radar" data={data} options={options} />
           </Card>
         </Grid>
-        <Grid xs={24} md={8}>
+        <Grid xs={24} md={8} id="input">
           <Card>
             <Text h3>Player Stats</Text>
             <Divider />
@@ -350,17 +353,20 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
             </Input>
           </Card>
         </Grid>
-        <Grid xs={24} md={24}>
-          <Button
-            type="success"
-            onClick={async (_e) => {
-              await copyShareLink(player);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 5000);
-            }}
-          >
-            {copied ? "Copied to clipboard!" : "Share My Stats"}
-          </Button>
+        <Grid xs={24} md={24} id="share">
+          <Row style={{ width: "100%" }}>
+            <Button
+              style={!isDesktop ? { width: "100%" } : {}}
+              type="success"
+              onClick={async (_e) => {
+                await copyShareLink(player);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 5000);
+              }}
+            >
+              {copied ? "Copied to clipboard!" : "Share My Stats"}
+            </Button>
+          </Row>
         </Grid>
       </Grid.Container>
     </Layout>

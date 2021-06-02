@@ -5,16 +5,18 @@
   - [x] Share button
   - [ ] social buttons?
 - [ ] SEO
-  - [ ] favicon
+  - [x] favicon
   - [ ] lighthouse test
-  - [ ] body copy
+  - [x] body copy
   - [ ] google analytics
 - [ ] Performance
   - [ ] load players via API, have loading screen or something
+  - [x] basic mobile styles
 - [ ] Features
   - [x] "find your most similar player"
   - [ ] "find your natural position"
   - [ ] compare against X
+  - [ ] 40yd conversions
   - [x] color changes on name entry
   - [ ] don't restart the animation on each update
   - [ ] get combine data for 2019, 2020, 2021

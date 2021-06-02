@@ -2,6 +2,8 @@ import type { AppProps /*, AppContext */ } from "next/app";
 
 import { GeistProvider, CssBaseline } from "@geist-ui/react";
 
+import "../styles/global.scss";
+
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <GeistProvider>
