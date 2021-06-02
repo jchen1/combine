@@ -8,7 +8,7 @@
   - [x] favicon
   - [ ] lighthouse test
   - [x] body copy
-  - [ ] google analytics
+  - [x] google analytics
 - [ ] Performance
   - [ ] load players via API, have loading screen or something
   - [x] basic mobile styles
