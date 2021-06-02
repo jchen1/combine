@@ -8,6 +8,7 @@
   - [ ] favicon
   - [ ] lighthouse test
   - [ ] body copy
+  - [ ] google analytics
 - [ ] Performance
   - [ ] load players via API, have loading screen or something
 - [ ] Features
