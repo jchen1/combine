@@ -71,10 +71,13 @@ export function combinePercentRank(
   const key = `${field}.${position ? position : "ALL"}`;
   if (!cache[key]) {
     cache[key] = combineData
-      .filter((datum) => !position || position === datum.position)
+      .filter(
+        (datum) => datum[field] && (!position || position === datum.position)
+      )
       .map((datum) => datum[field])
-      .sort();
+      .sort((a, b) => (a as number) - (b as number));
   }
+
   const raw = percentRank(cache[key], value);
 
   if (["fortyYard", "threeCone", "shuttleRun"].includes(field)) {
