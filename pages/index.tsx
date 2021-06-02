@@ -52,7 +52,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
   const [position, setPosition] = useState(
     stringOrFirst(query.position) || "WR"
   );
-  const [name, setName] = useState(stringOrFirst(query.name) || "My Player");
+  const [name, setName] = useState(stringOrFirst(query.player) || "My Player");
   const [height, setHeight] = useState(
     parseInt(stringOrFirst(query.height)) || 73
   );
