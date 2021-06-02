@@ -19,7 +19,7 @@ import {
   orderedCombineKeys,
   combineKeyToUnit,
 } from "../utils/data";
-// import { stringToColor } from "../utils/colors";
+import { stringToColor } from "../utils/colors";
 import { CombineResult, positions } from "../interfaces";
 
 const IndexPage = () => {
@@ -53,6 +53,8 @@ const IndexPage = () => {
   //   ? combinePercentileData.filter((datum) => datum.position === position)
   //   : combinePercentileData;
 
+  const playerColor = stringToColor(name);
+
   const data = {
     labels: [
       "Height",
@@ -64,15 +66,7 @@ const IndexPage = () => {
       "Three Cone",
       "Shuttle Run",
     ],
-    // todo: custom tooltip that shows the raw value too...
     datasets: [
-      {
-        label: "",
-        data: [0, 0, 0, 0, 0, 0, 0, 0],
-        backgroundColor: "hsla(0, 100%, 100%, 0)",
-        borderColor: "hsla(0, 100%, 100%, 0)",
-        borderWidth: 0,
-      },
       {
         label: `${name} (${position})`,
         data: orderedCombineKeys.map((key) =>
@@ -83,11 +77,11 @@ const IndexPage = () => {
           )
         ),
         player,
-        backgroundColor: "hsla(100, 95%, 80%, 0.5)",
-        borderColor: "hsla(100, 95%, 80%, 1)",
+        backgroundColor: `hsla(${playerColor.h}, ${playerColor.s}%, ${playerColor.l}%, 0.5)`,
+        borderColor: `hsla(${playerColor.h}, ${playerColor.s}%, ${playerColor.l}%, 1)`,
         borderWidth: 1,
         pointRadius: 5,
-        pointBackgroundColor: "hsla(100, 95%, 50%, 1)",
+        pointBackgroundColor: `hsla(${playerColor.h}, ${playerColor.s}%, ${playerColor.l}%, 1)`,
       },
     ],
     // todo; comparables
@@ -117,15 +111,20 @@ const IndexPage = () => {
   };
   const options = {
     scale: {
-      ticks: { beginAtZero: true, min: 0, max: 100 },
+      min: 0,
+      max: 100,
     },
     plugins: {
       tooltip: {
         callbacks: {
           label: ({ dataset, dataIndex }: any) => {
-            const { label, player } = dataset;
+            const { label, player, data } = dataset;
             const key = orderedCombineKeys[dataIndex];
-            return `${label}: ${player[key]}${combineKeyToUnit[key]}`;
+            if (player) {
+              return `${label}: ${player[key]}${combineKeyToUnit[key]} (${data[
+                dataIndex
+              ].toFixed(2)}%)`;
+            }
           },
         },
       },
@@ -133,7 +132,7 @@ const IndexPage = () => {
   };
   return (
     <Layout title="Combine Comparator">
-      <h1>Combine Comparator</h1>
+      <h1>NFL Combine Comparator</h1>
       <Grid.Container gap={2} justify="center">
         <Grid xs={24} md={18}>
           <Card>
