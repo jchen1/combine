@@ -1,4 +1,5 @@
 import {
+  Button,
   Card,
   Checkbox,
   Divider,
@@ -21,20 +22,61 @@ import {
 } from "../utils/data";
 import { stringToColor } from "../utils/colors";
 import { CombineResult, positions } from "../interfaces";
+import { GetServerSideProps } from "next";
 
-const IndexPage = () => {
+function stringOrFirst(s: string | string[]): string {
+  if (typeof s === "string") {
+    return s;
+  }
+  return (s && s.length > 0 && s[0]) || "";
+}
+
+function copyShareLink(player: CombineResult): Promise<void> {
+  const baseUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}`
+      : "http://localhost:3000";
+  const params = Object.entries(player).reduce(
+    (p, [k, v]) => ({ ...p, [k]: `${v}` }),
+    {}
+  );
+  const s = `${baseUrl}?${new URLSearchParams(params).toString()}`;
+  return navigator.clipboard.writeText(s);
+}
+
+const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
+  const [copied, setCopied] = useState(false);
+
   const [compareVsPosition, setCompareVsPosition] = useState(true);
 
-  const [position, setPosition] = useState("WR");
-  const [name, setName] = useState("My Player");
-  const [height, setHeight] = useState(73);
-  const [weight, setWeight] = useState(184);
-  const [fortyYard, setFortyYard] = useState(4.29);
-  const [verticalJump, setVerticalJump] = useState(38.5);
-  const [benchReps, setBenchReps] = useState(17);
-  const [broadJump, setBroadJump] = useState(131);
-  const [threeCone, setThreeCone] = useState(6.74);
-  const [shuttleRun, setShuttleRun] = useState(4.17);
+  const [position, setPosition] = useState(
+    stringOrFirst(query.position) || "WR"
+  );
+  const [name, setName] = useState(stringOrFirst(query.name) || "My Player");
+  const [height, setHeight] = useState(
+    parseInt(stringOrFirst(query.height)) || 73
+  );
+  const [weight, setWeight] = useState(
+    parseInt(stringOrFirst(query.weight)) || 184
+  );
+  const [fortyYard, setFortyYard] = useState(
+    parseFloat(stringOrFirst(query.fortyYard)) || 4.29
+  );
+  const [verticalJump, setVerticalJump] = useState(
+    parseFloat(stringOrFirst(query.verticalJump)) || 38.5
+  );
+  const [benchReps, setBenchReps] = useState(
+    parseInt(stringOrFirst(query.benchReps)) || 17
+  );
+  const [broadJump, setBroadJump] = useState(
+    parseInt(stringOrFirst(query.broadJump)) || 131
+  );
+  const [threeCone, setThreeCone] = useState(
+    parseFloat(stringOrFirst(query.threeCone)) || 6.74
+  );
+  const [shuttleRun, setShuttleRun] = useState(
+    parseFloat(stringOrFirst(query.shuttleRun)) || 4.17
+  );
 
   const player: CombineResult = {
     position,
@@ -133,8 +175,9 @@ const IndexPage = () => {
   return (
     <Layout title="Combine Comparator">
       <h1>NFL Combine Comparator</h1>
-      <Grid.Container gap={2} justify="center">
-        <Grid xs={24} md={18}>
+      {/* todo: mobile ordering */}
+      <Grid.Container gap={2} justify="center" wrap="wrap">
+        <Grid xs={24} md={16}>
           <Card>
             <Row align="middle" justify="end">
               <Text>Compare vs position</Text>
@@ -148,7 +191,7 @@ const IndexPage = () => {
             <Radar type="radar" data={data} options={options} />
           </Card>
         </Grid>
-        <Grid xs={24} md={6}>
+        <Grid xs={24} md={8}>
           <Card>
             <Text h3>Player Stats</Text>
             <Divider />
@@ -280,9 +323,27 @@ const IndexPage = () => {
             </Input>
           </Card>
         </Grid>
+        <Grid xs={24} md={24}>
+          <Button
+            type="success"
+            onClick={async (e) => {
+              await copyShareLink(player);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 5000);
+            }}
+          >
+            {copied ? "Copied to clipboard!" : "Share My Stats"}
+          </Button>
+        </Grid>
       </Grid.Container>
     </Layout>
   );
+};
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: { query: context.query },
+  };
 };
 
 export default IndexPage;

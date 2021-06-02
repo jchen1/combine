@@ -1,8 +1,9 @@
 # TODO
 
 - [ ] Share links
-  - [ ] Load from querystring
-  - [ ] Share buttons
+  - [x] Load from querystring
+  - [x] Share button
+  - [ ] social buttons?
 - [ ] SEO
   - [ ] favicon
   - [ ] lighthouse test
