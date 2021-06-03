@@ -52,6 +52,10 @@ function isNilOrDefault(x: any, d: any) {
   return x === null || x === undefined ? d : x;
 }
 
+function parseInput(val: string, precision = 0): number {
+  return parseFloat(parseFloat(val).toFixed(precision));
+}
+
 const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
   const [copied, setCopied] = useState(false);
 
@@ -89,14 +93,14 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
   const player: CombineResult = {
     position,
     player: name,
-    height,
-    weight,
-    fortyYard,
-    verticalJump,
-    benchReps,
-    broadJump,
-    threeCone,
-    shuttleRun,
+    height: parseInput(height),
+    weight: parseInput(weight),
+    fortyYard: parseInput(fortyYard, 2),
+    verticalJump: parseInput(verticalJump, 1),
+    benchReps: parseInput(benchReps),
+    broadJump: parseInput(broadJump, 1),
+    threeCone: parseInput(threeCone, 2),
+    shuttleRun: parseInput(shuttleRun, 2),
   };
 
   useEffect(() => {
@@ -131,6 +135,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
       {
         label: `${name} (${position})`,
         data: orderedCombineKeys
+          .filter((key) => player[key])
           .map(
             (key) =>
               player[key] &&
@@ -139,8 +144,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
                 player[key] as number | undefined,
                 position
               )
-          )
-          .filter((x) => x),
+          ),
         player,
         backgroundColor: `hsla(${playerColor.h}, ${playerColor.s}%, ${playerColor.l}%, 0.5)`,
         borderColor: `hsla(${playerColor.h}, ${playerColor.s}%, ${playerColor.l}%, 1)`,
@@ -180,6 +184,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
         : []
     ),
   };
+
   const options = {
     scale: {
       min: 0,
@@ -256,8 +261,8 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               placeholder="73"
               width="100%"
               value={`${height}`}
-              onChange={(e) => setHeight(e.target.valueAsNumber)}
-              onBlur={(_e) => setHeight(Math.round(height))}
+              onChange={(e) => setHeight(e.target.value)}
+              onBlur={(_e) => setHeight(parseInput(height))}
             >
               <Text b>Height</Text>
             </Input>
@@ -268,8 +273,8 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               placeholder="184"
               width="100%"
               value={`${weight}`}
-              onChange={(e) => setWeight(e.target.valueAsNumber)}
-              onBlur={(_e) => setWeight(Math.round(weight))}
+              onChange={(e) => setWeight(e.target.value)}
+              onBlur={(_e) => setWeight(parseInput(weight))}
             >
               <Text b>Weight</Text>
             </Input>
@@ -281,8 +286,8 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               width="100%"
               step="0.01"
               value={`${fortyYard}`}
-              onChange={(e) => setFortyYard(e.target.valueAsNumber)}
-              onBlur={(_e) => setFortyYard(parseFloat(fortyYard.toFixed(2)))}
+              onChange={(e) => setFortyYard(e.target.value)}
+              onBlur={(_e) => setFortyYard(parseInput(fortyYard, 2))}
             >
               <Text b>40 Yard Dash</Text>
             </Input>
@@ -294,10 +299,8 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               width="100%"
               step="0.1"
               value={`${verticalJump}`}
-              onChange={(e) => setVerticalJump(e.target.valueAsNumber)}
-              onBlur={(_e) =>
-                setVerticalJump(parseFloat(verticalJump.toFixed(1)))
-              }
+              onChange={(e) => setVerticalJump(e.target.value)}
+              onBlur={(_e) => setVerticalJump(parseInput(verticalJump, 1))}
             >
               <Text b>Vertical Jump</Text>
             </Input>
@@ -308,8 +311,8 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               placeholder="17"
               width="100%"
               value={`${benchReps}`}
-              onChange={(e) => setBenchReps(e.target.valueAsNumber)}
-              onBlur={(_e) => setBenchReps(Math.round(benchReps))}
+              onChange={(e) => setBenchReps(e.target.value)}
+              onBlur={(_e) => setBenchReps(parseInput(benchReps))}
             >
               <Text b>225lb Bench Press</Text>
             </Input>
@@ -320,8 +323,8 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               placeholder="131"
               width="100%"
               value={`${broadJump}`}
-              onChange={(e) => setBroadJump(e.target.valueAsNumber)}
-              onBlur={(_e) => setBroadJump(Math.round(broadJump))}
+              onChange={(e) => setBroadJump(e.target.value)}
+              onBlur={(_e) => setBroadJump(parseInput(broadJump))}
             >
               <Text b>Broad Jump</Text>
             </Input>
@@ -333,8 +336,8 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               width="100%"
               step="0.01"
               value={`${threeCone}`}
-              onChange={(e) => setThreeCone(e.target.valueAsNumber)}
-              onBlur={(_e) => setThreeCone(parseFloat(threeCone.toFixed(2)))}
+              onChange={(e) => setThreeCone(e.target.value)}
+              onBlur={(_e) => setThreeCone(parseInput(threeCone, 2))}
             >
               <Text b>Three Cone Drill</Text>
             </Input>
@@ -346,8 +349,8 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               width="100%"
               step="0.01"
               value={`${shuttleRun}`}
-              onChange={(e) => setShuttleRun(e.target.valueAsNumber)}
-              onBlur={(_e) => setShuttleRun(parseFloat(shuttleRun.toFixed(2)))}
+              onChange={(e) => setShuttleRun(e.target.value)}
+              onBlur={(_e) => setShuttleRun(parseInput(shuttleRun, 2))}
             >
               <Text b>20yd Shuttle Run</Text>
             </Input>
