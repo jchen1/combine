@@ -46,12 +46,54 @@ function getShareLink(player: CombineResult) {
   return `${baseUrl}?${new URLSearchParams(params).toString()}`;
 }
 
-function isNilOrDefault(x: any, d: any) {
-  return x === null || x === undefined ? d : x;
+function parseInput(val: string | number, precision = 0): number {
+  if (typeof val === "number") {
+    return val;
+  }
+
+  return parseFloat(parseFloat(val).toFixed(precision));
 }
 
-function parseInput(val: string, precision = 0): number {
-  return parseFloat(parseFloat(val).toFixed(precision));
+function parseQuery(query: Record<string, string | string[]>): CombineResult {
+  const { position, player, stats } = query;
+  if (!position || !player || !stats) {
+    return {
+      position: "WR",
+      player: "My Player",
+      height: 73,
+      weight: 184,
+      fortyYard: 4.29,
+      verticalJump: 38.5,
+      benchReps: 17,
+      broadJump: 131,
+      threeCone: 6.74,
+      shuttleRun: 4.17,
+    };
+  }
+
+  const [
+    height,
+    weight,
+    fortyYard,
+    verticalJump,
+    benchReps,
+    broadJump,
+    threeCone,
+    shuttleRun,
+  ] = stringOrFirst(stats).split(",");
+
+  return {
+    position: stringOrFirst(position),
+    player: stringOrFirst(player),
+    height: parseInput(height) || 0,
+    weight: parseInput(weight) || 0,
+    fortyYard: parseInput(fortyYard, 2) || 0,
+    verticalJump: parseInput(verticalJump, 1) || 0,
+    benchReps: parseInput(benchReps) || 0,
+    broadJump: parseInput(broadJump, 1) || 0,
+    threeCone: parseInput(threeCone, 2) || 0,
+    shuttleRun: parseInput(shuttleRun, 2) || 0,
+  };
 }
 
 const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
@@ -59,34 +101,29 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
   const [, setToast] = useToasts();
 
   const [comparePlayers, setComparePlayers] = useState(true);
+  const queryPlayer = parseQuery(query);
 
-  const [position, setPosition] = useState(
-    stringOrFirst(query.position) || "WR"
+  const [position, setPosition] = useState(queryPlayer.position);
+  const [name, setName] = useState(queryPlayer.player);
+  const [height, setHeight] = useState<string | number>(queryPlayer.height!);
+  const [weight, setWeight] = useState<string | number>(queryPlayer.weight!);
+  const [fortyYard, setFortyYard] = useState<string | number>(
+    queryPlayer.fortyYard!
   );
-  const [name, setName] = useState(stringOrFirst(query.player) || "My Player");
-  const [height, setHeight] = useState(
-    isNilOrDefault(parseInt(stringOrFirst(query.height)), 73)
+  const [verticalJump, setVerticalJump] = useState<string | number>(
+    queryPlayer.verticalJump!
   );
-  const [weight, setWeight] = useState(
-    isNilOrDefault(parseInt(stringOrFirst(query.weight)), 184)
+  const [benchReps, setBenchReps] = useState<string | number>(
+    queryPlayer.benchReps!
   );
-  const [fortyYard, setFortyYard] = useState(
-    isNilOrDefault(parseFloat(stringOrFirst(query.fortyYard)), 4.29)
+  const [broadJump, setBroadJump] = useState<string | number>(
+    queryPlayer.broadJump!
   );
-  const [verticalJump, setVerticalJump] = useState(
-    isNilOrDefault(parseFloat(stringOrFirst(query.verticalJump)), 38.5)
+  const [threeCone, setThreeCone] = useState<string | number>(
+    queryPlayer.threeCone!
   );
-  const [benchReps, setBenchReps] = useState(
-    isNilOrDefault(parseInt(stringOrFirst(query.benchReps)), 17)
-  );
-  const [broadJump, setBroadJump] = useState(
-    isNilOrDefault(parseInt(stringOrFirst(query.broadJump)), 131)
-  );
-  const [threeCone, setThreeCone] = useState(
-    isNilOrDefault(parseFloat(stringOrFirst(query.threeCone)), 6.74)
-  );
-  const [shuttleRun, setShuttleRun] = useState(
-    isNilOrDefault(parseFloat(stringOrFirst(query.shuttleRun)), 4.17)
+  const [shuttleRun, setShuttleRun] = useState<string | number>(
+    queryPlayer.shuttleRun!
   );
 
   const player: CombineResult = {
@@ -103,7 +140,19 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
   };
 
   useEffect(() => {
-    history.replaceState(null, "", getShareLink(player));
+    if (
+      position &&
+      (name ||
+        height ||
+        weight ||
+        fortyYard ||
+        verticalJump ||
+        benchReps ||
+        broadJump ||
+        threeCone ||
+        shuttleRun)
+    )
+      history.replaceState(null, "", getShareLink(player));
   }, [
     position,
     name,
