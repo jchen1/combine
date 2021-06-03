@@ -13,7 +13,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     "twitter:card": "summary",
     // todo parameterize
     "og:url": `https://nflcombinestats.com`,
-    // todo og:image
+    "og:image": `https://nflcombinestats.com/images/og.png`,
     description: "Test how you stack up compared to NFL players!",
     "og:type": "website",
   };
