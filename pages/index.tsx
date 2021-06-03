@@ -39,10 +39,20 @@ function getShareLink(player: CombineResult) {
     typeof window !== "undefined"
       ? `${window.location.origin}`
       : "http://localhost:3000";
-  const params = Object.entries(player).reduce(
-    (p, [k, v]) => ({ ...p, [k]: `${v}` }),
-    {}
-  );
+  const params = {
+    position: player.position,
+    player: player.player,
+    stats: [
+      player.height,
+      player.weight,
+      player.fortyYard,
+      player.verticalJump,
+      player.benchReps,
+      player.broadJump,
+      player.threeCone,
+      player.shuttleRun,
+    ].join("_"),
+  };
   return `${baseUrl}?${new URLSearchParams(params).toString()}`;
 }
 
@@ -80,7 +90,7 @@ function parseQuery(query: Record<string, string | string[]>): CombineResult {
     broadJump,
     threeCone,
     shuttleRun,
-  ] = stringOrFirst(stats).split(",");
+  ] = stringOrFirst(stats).split("_");
 
   return {
     position: stringOrFirst(position),
