@@ -6,9 +6,11 @@
   - [ ] social buttons?
 - [ ] SEO
   - [x] favicon
-  - [ ] lighthouse test
+  - [x] lighthouse test (60...)
   - [x] body copy
   - [x] google analytics
+  - [x] og tags
+  - [ ] og image
 - [ ] Performance
   - [ ] load players via API, have loading screen or something
   - [x] basic mobile styles
