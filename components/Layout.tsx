@@ -27,7 +27,7 @@ const Layout = ({ children, title = "This is the default title" }: Props) => (
       <Divider />
       <span>
         © 2021{" "}
-        <a href="https://jeffchen.dev" target="_blank">
+        <a href="https://jeffchen.dev" target="_blank" rel="noopener">
           Jeff Chen
         </a>
       </span>
