@@ -9,6 +9,8 @@ import {
   Spacer,
   Text,
   Toggle,
+  useClipboard,
+  useToasts,
 } from "@geist-ui/react";
 import { Radar } from "react-chartjs-2";
 import { useEffect, useState } from "react";
@@ -44,10 +46,6 @@ function getShareLink(player: CombineResult) {
   return `${baseUrl}?${new URLSearchParams(params).toString()}`;
 }
 
-function copyShareLink(player: CombineResult): Promise<void> {
-  return navigator.clipboard.writeText(getShareLink(player));
-}
-
 function isNilOrDefault(x: any, d: any) {
   return x === null || x === undefined ? d : x;
 }
@@ -57,7 +55,8 @@ function parseInput(val: string, precision = 0): number {
 }
 
 const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
-  const [copied, setCopied] = useState(false);
+  const { copy } = useClipboard();
+  const [, setToast] = useToasts();
 
   const [comparePlayers, setComparePlayers] = useState(true);
 
@@ -362,12 +361,11 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               style={{ width: "100%" }}
               type="success"
               onClick={async (_e) => {
-                await copyShareLink(player);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 5000);
+                copy(getShareLink(player));
+                setToast({ type: "success", text: "Copied to clipboard!" });
               }}
             >
-              {copied ? "Copied to clipboard!" : "Share My Stats"}
+              Share My Stats
             </Button>
           </Row>
         </Grid>

@@ -1,6 +1,7 @@
-import { CombineResult, CombineResultWithPercentiles } from "../interfaces";
+import { CombineResult } from "../interfaces";
 
 import data from "../assets/data.json";
+import percentiles from "../assets/percentiles.json";
 
 // Returns the value at a given percentile in a sorted numeric array.
 // "Linear interpolation between closest ranks" method
@@ -38,26 +39,8 @@ function percentRank(arr: number[], v: number) {
   return 1;
 }
 
-export const combineData: CombineResult[] = data.map((d) => ({
-  player: d.Player,
-  position: d.Pos,
-  height: d.Ht || null,
-  weight: d.Wt || null,
-  fortyYard: d.Forty || null,
-  verticalJump: d.Vertical || null,
-  benchReps: d.BenchReps || null,
-  broadJump: d.BroadJump || null,
-  threeCone: d.Cone || null,
-  shuttleRun: d.Shuttle || null,
-  year: d.Year,
-  team: d.Team,
-  av: d.AV,
-  round: d.Round,
-  pick: d.Pick,
-}));
-
-// memoize some calls...
-const cache: any = {};
+export const combineData: CombineResult[] = data;
+const cache: Record<string, number[]> = percentiles;
 
 export function combinePercentRank(
   field: keyof CombineResult,
@@ -74,8 +57,8 @@ export function combinePercentRank(
       .filter(
         (datum) => datum[field] && (!position || position === datum.position)
       )
-      .map((datum) => datum[field])
-      .sort((a, b) => (a as number) - (b as number));
+      .map((datum) => datum[field] as number)
+      .sort((a, b) => a - b);
   }
 
   const raw = percentRank(cache[key], value);
@@ -86,99 +69,6 @@ export function combinePercentRank(
 
   return raw * 100;
 }
-
-export const percentileData: CombineResult[] = combineData.map((d) => ({
-  ...d,
-  height: combinePercentRank("height", d.height),
-  weight: combinePercentRank("weight", d.weight),
-  fortyYard: combinePercentRank("fortyYard", d.fortyYard),
-  verticalJump: combinePercentRank("verticalJump", d.verticalJump),
-  benchReps: combinePercentRank("benchReps", d.benchReps),
-  broadJump: combinePercentRank("broadJump", d.broadJump),
-  threeCone: combinePercentRank("threeCone", d.threeCone),
-  shuttleRun: combinePercentRank("shuttleRun", d.shuttleRun),
-}));
-
-export const positionPercentileData: CombineResult[] = combineData.map((d) => ({
-  ...d,
-  height: combinePercentRank("height", d.height, d.position),
-  weight: combinePercentRank("weight", d.weight, d.position),
-  fortyYard: combinePercentRank("fortyYard", d.fortyYard, d.position),
-  verticalJump: combinePercentRank("verticalJump", d.verticalJump, d.position),
-  benchReps: combinePercentRank("benchReps", d.benchReps, d.position),
-  broadJump: combinePercentRank("broadJump", d.broadJump, d.position),
-  threeCone: combinePercentRank("threeCone", d.threeCone, d.position),
-  shuttleRun: combinePercentRank("shuttleRun", d.shuttleRun, d.position),
-}));
-
-export const combinePercentileData: CombineResultWithPercentiles[] =
-  combineData.map((d) => ({
-    ...d,
-    height: {
-      raw: d.height,
-      percentile: combinePercentRank("height", d.height),
-      positionPercentile: combinePercentRank("height", d.height, d.position),
-    },
-    weight: {
-      raw: d.weight,
-      percentile: combinePercentRank("weight", d.weight),
-      positionPercentile: combinePercentRank("weight", d.weight, d.position),
-    },
-    fortyYard: {
-      raw: d.fortyYard,
-      percentile: combinePercentRank("fortyYard", d.fortyYard),
-      positionPercentile: combinePercentRank(
-        "fortyYard",
-        d.fortyYard,
-        d.position
-      ),
-    },
-    verticalJump: {
-      raw: d.verticalJump,
-      percentile: combinePercentRank("verticalJump", d.verticalJump),
-      positionPercentile: combinePercentRank(
-        "verticalJump",
-        d.verticalJump,
-        d.position
-      ),
-    },
-    benchReps: {
-      raw: d.benchReps,
-      percentile: combinePercentRank("benchReps", d.benchReps),
-      positionPercentile: combinePercentRank(
-        "benchReps",
-        d.benchReps,
-        d.position
-      ),
-    },
-    broadJump: {
-      raw: d.broadJump,
-      percentile: combinePercentRank("broadJump", d.broadJump),
-      positionPercentile: combinePercentRank(
-        "broadJump",
-        d.broadJump,
-        d.position
-      ),
-    },
-    threeCone: {
-      raw: d.threeCone,
-      percentile: combinePercentRank("threeCone", d.threeCone),
-      positionPercentile: combinePercentRank(
-        "threeCone",
-        d.threeCone,
-        d.position
-      ),
-    },
-    shuttleRun: {
-      raw: d.shuttleRun,
-      percentile: combinePercentRank("shuttleRun", d.shuttleRun),
-      positionPercentile: combinePercentRank(
-        "shuttleRun",
-        d.shuttleRun,
-        d.position
-      ),
-    },
-  }));
 
 export const orderedCombineKeys: (keyof CombineResult)[] = [
   "height",
