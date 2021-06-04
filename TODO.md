@@ -10,7 +10,7 @@
   - [x] body copy
   - [x] google analytics
   - [x] og tags
-  - [ ] og image
+  - [x] og image
 - [ ] Performance
   - [ ] load players via API, have loading screen or something
   - [x] basic mobile styles
@@ -23,3 +23,4 @@
   - [ ] don't restart the animation on each update
   - [ ] get combine data for 2019, 2020, 2021
   - [x] hide fields with val=0
+  - [x] inputmode

@@ -319,6 +319,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               placeholder="73"
               width="100%"
               value={`${height}`}
+              inputMode="numeric"
               onChange={(e) => setHeight(e.target.value)}
               onBlur={(_e) => setHeight(parseInput(height))}
             >
@@ -330,6 +331,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               labelRight={combineKeyToUnit.weight.trim()}
               placeholder="184"
               width="100%"
+              inputMode="numeric"
               value={`${weight}`}
               onChange={(e) => setWeight(e.target.value)}
               onBlur={(_e) => setWeight(parseInput(weight))}
@@ -343,6 +345,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               placeholder="4.29"
               width="100%"
               step="0.01"
+              inputMode="decimal"
               value={`${fortyYard}`}
               onChange={(e) => setFortyYard(e.target.value)}
               onBlur={(_e) => setFortyYard(parseInput(fortyYard, 2))}
@@ -356,6 +359,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               placeholder="38.5"
               width="100%"
               step="0.1"
+              inputMode="decimal"
               value={`${verticalJump}`}
               onChange={(e) => setVerticalJump(e.target.value)}
               onBlur={(_e) => setVerticalJump(parseInput(verticalJump, 1))}
@@ -368,6 +372,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               labelRight={combineKeyToUnit.benchReps.trim()}
               placeholder="17"
               width="100%"
+              inputMode="numeric"
               value={`${benchReps}`}
               onChange={(e) => setBenchReps(e.target.value)}
               onBlur={(_e) => setBenchReps(parseInput(benchReps))}
@@ -380,6 +385,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               labelRight={combineKeyToUnit.broadJump.trim()}
               placeholder="131"
               width="100%"
+              inputMode="numeric"
               value={`${broadJump}`}
               onChange={(e) => setBroadJump(e.target.value)}
               onBlur={(_e) => setBroadJump(parseInput(broadJump))}
@@ -393,6 +399,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               placeholder="6.74"
               width="100%"
               step="0.01"
+              inputMode="decimal"
               value={`${threeCone}`}
               onChange={(e) => setThreeCone(e.target.value)}
               onBlur={(_e) => setThreeCone(parseInput(threeCone, 2))}
@@ -406,6 +413,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               placeholder="4.17"
               width="100%"
               step="0.01"
+              inputMode="decimal"
               value={`${shuttleRun}`}
               onChange={(e) => setShuttleRun(e.target.value)}
               onBlur={(_e) => setShuttleRun(parseInput(shuttleRun, 2))}
