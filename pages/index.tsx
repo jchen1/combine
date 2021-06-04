@@ -13,19 +13,29 @@ import {
   useToasts,
 } from "@geist-ui/react";
 import { Radar } from "react-chartjs-2";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import Layout from "../components/Layout";
 import {
   combinePercentRank,
-  // combinePercentileData,
-  orderedCombineKeys,
-  combineKeyToUnit,
+  combineKeyMetadata,
   mostSimilarPlayers,
 } from "../utils/data";
 import { stringToColor } from "../utils/colors";
-import { CombineResult, positions } from "../interfaces";
+import {
+  CombineResult,
+  CombineResultMetadata,
+  CombineStat,
+  CombineStats,
+  Position,
+  orderedCombineKeys,
+  positions,
+} from "../interfaces";
 import { GetServerSideProps } from "next";
+
+function mapVals<T, U>(map: Record<any, T>, f: (_: T) => U): Record<any, U> {
+  return Object.fromEntries(Object.entries(map).map(([k, v]) => [k, f(v)]));
+}
 
 function stringOrFirst(s: string | string[]): string {
   if (typeof s === "string") {
@@ -67,17 +77,14 @@ function parseInput(val: string | number, precision = 0): number {
 function parseQuery(query: Record<string, string | string[]>): CombineResult {
   const { position, player, stats } = query;
   if (!position || !player || !stats) {
-    return {
+    const meta: CombineResultMetadata = {
       position: "WR",
       player: "My Player",
-      height: 73,
-      weight: 184,
-      fortyYard: 4.29,
-      verticalJump: 38.5,
-      benchReps: 17,
-      broadJump: 131,
-      threeCone: 6.74,
-      shuttleRun: 4.17,
+    };
+    const stats: CombineStats = mapVals(combineKeyMetadata, (m) => m.default);
+    return {
+      ...meta,
+      ...stats,
     };
   }
 
@@ -93,7 +100,7 @@ function parseQuery(query: Record<string, string | string[]>): CombineResult {
   ] = stringOrFirst(stats).split("_");
 
   return {
-    position: stringOrFirst(position),
+    position: positions.find((x) => x === stringOrFirst(position)) || "WR",
     player: stringOrFirst(player),
     height: parseInput(height) || 0,
     weight: parseInput(weight) || 0,
@@ -105,6 +112,64 @@ function parseQuery(query: Record<string, string | string[]>): CombineResult {
     shuttleRun: parseInput(shuttleRun, 2) || 0,
   };
 }
+
+function playerToGraphData(
+  player: CombineResult,
+  availableKeys: CombineStat[]
+) {
+  const { h, s, l } = stringToColor(player.player);
+
+  return {
+    label: `${player.player} (${player.position})`,
+    data: orderedCombineKeys
+      .map(
+        (key) =>
+          availableKeys.includes(key) &&
+          (combinePercentRank(
+            key,
+            player[key] as number | undefined,
+            player.position
+          ) ||
+            0)
+      )
+      .filter((x) => x),
+    player,
+    backgroundColor: `hsla(${h}, ${s}%, ${l}%, 0.2)`,
+    borderColor: `hsla(${h}, ${s}%, ${l}%, 1)`,
+    borderWidth: 1,
+    pointRadius: 5,
+    pointBackgroundColor: `hsla(${h}, ${s}%, ${l}%, 1)`,
+  };
+}
+
+type NumericInputProps = {
+  field: CombineStat;
+  value: string | number;
+  setValue: Dispatch<SetStateAction<string | number>>;
+};
+
+const NumericInput = ({ field, value, setValue }: NumericInputProps) => {
+  const precision = combineKeyMetadata[field].precision || 0;
+
+  const step = precision > 0 ? `0.${"0".repeat(precision - 1)}1` : "1";
+  const inputMode = precision > 0 ? "decimal" : "numeric";
+
+  return (
+    <Input
+      type="number"
+      labelRight={combineKeyMetadata[field].unit.trim()}
+      value={value.toString()}
+      inputMode={inputMode}
+      width="100%"
+      placeholder={combineKeyMetadata[field].default.toString()}
+      onChange={(e) => setValue(e.target.value)}
+      onBlur={(_e) => setValue(parseInput(value, precision))}
+      step={step}
+    >
+      <Text b>{combineKeyMetadata[field].label}</Text>
+    </Input>
+  );
+};
 
 const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
   const { copy } = useClipboard();
@@ -149,6 +214,20 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
     shuttleRun: parseInput(shuttleRun, 2),
   };
 
+  const actions: Record<
+    CombineStat,
+    Dispatch<SetStateAction<string | number>>
+  > = {
+    height: setHeight,
+    weight: setWeight,
+    fortyYard: setFortyYard,
+    verticalJump: setVerticalJump,
+    benchReps: setBenchReps,
+    broadJump: setBroadJump,
+    threeCone: setThreeCone,
+    shuttleRun: setShuttleRun,
+  };
+
   useEffect(() => {
     if (
       position &&
@@ -176,69 +255,15 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
     shuttleRun,
   ]);
 
-  const playerColor = stringToColor(name);
+  const availableKeys = orderedCombineKeys.filter((k) => player[k]);
 
   const data = {
-    labels: [
-      height && "Height",
-      weight && "Weight",
-      fortyYard && "40y Dash",
-      verticalJump && "Vertical Jump",
-      benchReps && "Bench Press",
-      broadJump && "Broad Jump",
-      threeCone && "Three Cone Drill",
-      shuttleRun && "20y Shuttle Run",
-    ].filter((x) => x),
-    datasets: [
-      {
-        label: `${name} (${position})`,
-        data: orderedCombineKeys
-          .filter((key) => player[key])
-          .map(
-            (key) =>
-              player[key] &&
-              combinePercentRank(
-                key,
-                player[key] as number | undefined,
-                position
-              )
-          ),
-        player,
-        backgroundColor: `hsla(${playerColor.h}, ${playerColor.s}%, ${playerColor.l}%, 0.5)`,
-        borderColor: `hsla(${playerColor.h}, ${playerColor.s}%, ${playerColor.l}%, 1)`,
-        borderWidth: 1,
-        pointRadius: 5,
-        pointBackgroundColor: `hsla(${playerColor.h}, ${playerColor.s}%, ${playerColor.l}%, 1)`,
-      },
-    ].concat(
+    labels: availableKeys.map((k) => combineKeyMetadata[k].label),
+    datasets: [playerToGraphData(player, availableKeys)].concat(
       comparePlayers
         ? mostSimilarPlayers(player)
             .slice(0, 3)
-            .map((datum) => {
-              const { h, s, l } = stringToColor(datum.player);
-
-              return {
-                label: `${datum.player} (${datum.position})`,
-                data: orderedCombineKeys
-                  .map(
-                    (key) =>
-                      player[key] &&
-                      (combinePercentRank(
-                        key,
-                        datum[key] as number | undefined,
-                        position
-                      ) ||
-                        0)
-                  )
-                  .filter((x) => x),
-                player: datum,
-                backgroundColor: `hsla(${h}, ${s}%, ${l}%, 0.2)`,
-                borderColor: `hsla(${h}, ${s}%, ${l}%, 1)`,
-                borderWidth: 1,
-                pointRadius: 5,
-                pointBackgroundColor: `hsla(${h}, ${s}%, ${l}%, 1)`,
-              };
-            })
+            .map((p) => playerToGraphData(p, availableKeys))
         : []
     ),
   };
@@ -256,7 +281,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
             const key = orderedCombineKeys[dataIndex];
             if (player) {
               return `${label}: ${player[key] || 0}${
-                combineKeyToUnit[key]
+                combineKeyMetadata[key].unit
               } (${data[dataIndex].toFixed(2)}%)`;
             }
           },
@@ -304,7 +329,7 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
               placeholder="Position"
               width="100%"
               value={position}
-              onChange={(v) => setPosition(`${v}`)}
+              onChange={(v) => setPosition(v as Position)}
             >
               {positions.map((p) => (
                 <Select.Option value={p} key={p}>
@@ -312,114 +337,16 @@ const IndexPage = ({ query }: { query: Record<string, string | string[]> }) => {
                 </Select.Option>
               ))}
             </Select>
-            <Spacer y={1} />
-            <Input
-              type="number"
-              labelRight={combineKeyToUnit.height.trim()}
-              placeholder="73"
-              width="100%"
-              value={`${height}`}
-              inputMode="numeric"
-              onChange={(e) => setHeight(e.target.value)}
-              onBlur={(_e) => setHeight(parseInput(height))}
-            >
-              <Text b>Height</Text>
-            </Input>
-            <Spacer y={1} />
-            <Input
-              type="number"
-              labelRight={combineKeyToUnit.weight.trim()}
-              placeholder="184"
-              width="100%"
-              inputMode="numeric"
-              value={`${weight}`}
-              onChange={(e) => setWeight(e.target.value)}
-              onBlur={(_e) => setWeight(parseInput(weight))}
-            >
-              <Text b>Weight</Text>
-            </Input>
-            <Spacer y={1} />
-            <Input
-              type="number"
-              labelRight={combineKeyToUnit.fortyYard.trim()}
-              placeholder="4.29"
-              width="100%"
-              step="0.01"
-              inputMode="decimal"
-              value={`${fortyYard}`}
-              onChange={(e) => setFortyYard(e.target.value)}
-              onBlur={(_e) => setFortyYard(parseInput(fortyYard, 2))}
-            >
-              <Text b>40 Yard Dash</Text>
-            </Input>
-            <Spacer y={1} />
-            <Input
-              type="number"
-              labelRight={combineKeyToUnit.verticalJump.trim()}
-              placeholder="38.5"
-              width="100%"
-              step="0.1"
-              inputMode="decimal"
-              value={`${verticalJump}`}
-              onChange={(e) => setVerticalJump(e.target.value)}
-              onBlur={(_e) => setVerticalJump(parseInput(verticalJump, 1))}
-            >
-              <Text b>Vertical Jump</Text>
-            </Input>
-            <Spacer y={1} />
-            <Input
-              type="number"
-              labelRight={combineKeyToUnit.benchReps.trim()}
-              placeholder="17"
-              width="100%"
-              inputMode="numeric"
-              value={`${benchReps}`}
-              onChange={(e) => setBenchReps(e.target.value)}
-              onBlur={(_e) => setBenchReps(parseInput(benchReps))}
-            >
-              <Text b>225lb Bench Press</Text>
-            </Input>
-            <Spacer y={1} />
-            <Input
-              type="number"
-              labelRight={combineKeyToUnit.broadJump.trim()}
-              placeholder="131"
-              width="100%"
-              inputMode="numeric"
-              value={`${broadJump}`}
-              onChange={(e) => setBroadJump(e.target.value)}
-              onBlur={(_e) => setBroadJump(parseInput(broadJump))}
-            >
-              <Text b>Broad Jump</Text>
-            </Input>
-            <Spacer y={1} />
-            <Input
-              type="number"
-              labelRight={combineKeyToUnit.threeCone.trim()}
-              placeholder="6.74"
-              width="100%"
-              step="0.01"
-              inputMode="decimal"
-              value={`${threeCone}`}
-              onChange={(e) => setThreeCone(e.target.value)}
-              onBlur={(_e) => setThreeCone(parseInput(threeCone, 2))}
-            >
-              <Text b>Three Cone Drill</Text>
-            </Input>
-            <Spacer y={1} />
-            <Input
-              type="number"
-              labelRight={combineKeyToUnit.shuttleRun.trim()}
-              placeholder="4.17"
-              width="100%"
-              step="0.01"
-              inputMode="decimal"
-              value={`${shuttleRun}`}
-              onChange={(e) => setShuttleRun(e.target.value)}
-              onBlur={(_e) => setShuttleRun(parseInput(shuttleRun, 2))}
-            >
-              <Text b>20yd Shuttle Run</Text>
-            </Input>
+            {orderedCombineKeys.map((field) => (
+              <>
+                <Spacer y={1} />
+                <NumericInput
+                  field={field}
+                  value={player[field]!}
+                  setValue={actions[field]!}
+                />
+              </>
+            ))}
           </Card>
         </Grid>
         <Grid xs={24} md={24} id="share">

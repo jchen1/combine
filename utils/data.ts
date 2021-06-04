@@ -1,4 +1,9 @@
-import { CombineResult } from "../interfaces";
+import {
+  CombineResult,
+  CombineStat,
+  Position,
+  orderedCombineKeys,
+} from "../interfaces";
 
 import data from "../assets/data.json";
 import percentiles from "../assets/percentiles.json";
@@ -43,9 +48,9 @@ export const combineData: CombineResult[] = data;
 const cache: Record<string, number[]> = percentiles;
 
 export function combinePercentRank(
-  field: keyof CombineResult,
+  field: CombineStat,
   value?: number,
-  position?: string
+  position?: Position
 ): number {
   if (value === undefined || value === null) {
     return 0;
@@ -70,26 +75,58 @@ export function combinePercentRank(
   return raw * 100;
 }
 
-export const orderedCombineKeys: (keyof CombineResult)[] = [
-  "height",
-  "weight",
-  "fortyYard",
-  "verticalJump",
-  "benchReps",
-  "broadJump",
-  "threeCone",
-  "shuttleRun",
-];
+type CombineKeyMetadata = {
+  unit: string;
+  label: string;
+  default: number;
+  precision?: number;
+};
 
-export const combineKeyToUnit: Record<string, string> = {
-  height: '"',
-  weight: "lbs",
-  fortyYard: "s",
-  verticalJump: '"',
-  benchReps: " reps",
-  broadJump: '"',
-  threeCone: "s",
-  shuttleRun: "s",
+export const combineKeyMetadata: Record<CombineStat, CombineKeyMetadata> = {
+  height: {
+    unit: '"',
+    label: "Height",
+    default: 73,
+  },
+  weight: {
+    unit: "lbs",
+    label: "Weight",
+    default: 184,
+  },
+  fortyYard: {
+    unit: "s",
+    label: "40y Dash",
+    default: 4.29,
+    precision: 2,
+  },
+  verticalJump: {
+    unit: '"',
+    label: "Vertical Jump",
+    default: 38.5,
+    precision: 1,
+  },
+  benchReps: {
+    unit: " reps",
+    label: "225lb Bench Press",
+    default: 17,
+  },
+  broadJump: {
+    unit: '"',
+    label: "Broad Jump",
+    default: 131,
+  },
+  threeCone: {
+    unit: "s",
+    label: "Three Cone Drill",
+    default: 6.74,
+    precision: 2,
+  },
+  shuttleRun: {
+    unit: "s",
+    label: "20y Shuttle Run",
+    default: 4.17,
+    precision: 2,
+  },
 };
 
 function cosineSim(a: number[], b: number[]) {
@@ -106,8 +143,8 @@ function cosineSim(a: number[], b: number[]) {
 
 function playerSimilarity(a: CombineResult, b: CombineResult) {
   return cosineSim(
-    orderedCombineKeys.map((k) => a[k] as number),
-    orderedCombineKeys.map((k) => b[k] as number)
+    orderedCombineKeys.map((k) => a[k]),
+    orderedCombineKeys.map((k) => b[k])
   );
 }
 

@@ -24,48 +24,33 @@ export const positions = [
   "SS",
   "TE",
   "WR",
-];
+] as const;
 
 export type Position = typeof positions[number];
 
-export type RawPercentileTuple = {
-  raw?: number;
-  percentile?: number;
-  positionPercentile?: number;
-};
+export const orderedCombineKeys = [
+  "height",
+  "weight",
+  "fortyYard",
+  "verticalJump",
+  "benchReps",
+  "broadJump",
+  "threeCone",
+  "shuttleRun",
+] as const;
 
-export type CombineResult = {
+export type CombineStat = typeof orderedCombineKeys[number];
+
+export type CombineResultMetadata = {
   player: string;
-  position: string;
-  height?: number;
-  weight?: number;
-  fortyYard?: number;
-  verticalJump?: number;
-  benchReps?: number;
-  broadJump?: number;
-  threeCone?: number;
-  shuttleRun?: number;
+  position: Position;
   year?: number;
-  team?: string;
+  team?: number;
   av?: number;
   round?: number;
   pick?: number;
 };
 
-export type CombineResultWithPercentiles = {
-  player: string;
-  position: string;
-  height: RawPercentileTuple;
-  weight: RawPercentileTuple;
-  fortyYard?: RawPercentileTuple;
-  verticalJump?: RawPercentileTuple;
-  benchReps?: RawPercentileTuple;
-  broadJump?: RawPercentileTuple;
-  threeCone?: RawPercentileTuple;
-  shuttleRun?: RawPercentileTuple;
-  year?: number;
-  team?: string;
-  av?: number;
-  round?: number;
-  pick?: number;
-};
+export type CombineStats = Record<CombineStat, number>;
+
+export type CombineResult = CombineResultMetadata & CombineStats;
