@@ -1,12 +1,11 @@
+import data from "../assets/data.json";
+import percentiles from "../assets/percentiles.json";
 import {
   CombineResult,
   CombineStat,
-  Position,
   orderedCombineKeys,
+  Position,
 } from "../interfaces";
-
-import data from "../assets/data.json";
-import percentiles from "../assets/percentiles.json";
 
 // Returns the value at a given percentile in a sorted numeric array.
 // "Linear interpolation between closest ranks" method

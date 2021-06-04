@@ -1,10 +1,7 @@
+import { CssBaseline, GeistProvider } from "@geist-ui/react";
 import type { AppProps /*, AppContext */ } from "next/app";
-
-import { GeistProvider, CssBaseline } from "@geist-ui/react";
 import { useRouter } from "next/router";
-
 import Meta from "../components/Meta";
-
 import "../styles/global.scss";
 
 function MyApp({ Component, pageProps }: AppProps) {

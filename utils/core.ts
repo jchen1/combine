@@ -1,3 +1,25 @@
+export function parseInput(val: string | number, precision = 0): number {
+  if (typeof val === "number") {
+    return val;
+  }
+
+  return parseFloat(parseFloat(val).toFixed(precision));
+}
+
+export function mapVals<T, U>(
+  map: Record<any, T>,
+  f: (_: T) => U
+): Record<any, U> {
+  return Object.fromEntries(Object.entries(map).map(([k, v]) => [k, f(v)]));
+}
+
+export function stringOrFirst(s: string | string[]): string {
+  if (typeof s === "string") {
+    return s;
+  }
+  return (s && s.length > 0 && s[0]) || "";
+}
+
 type StringToColorOpts = {
   hue?: [number, number];
   sat?: [number, number];

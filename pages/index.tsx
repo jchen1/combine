@@ -12,37 +12,30 @@ import {
   useClipboard,
   useToasts,
 } from "@geist-ui/react";
-import { Radar } from "react-chartjs-2";
+import { GetServerSideProps } from "next";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-
+import { Radar } from "react-chartjs-2";
 import Layout from "../components/Layout";
-import {
-  combinePercentRank,
-  combineKeyMetadata,
-  mostSimilarPlayers,
-} from "../utils/data";
-import { stringToColor } from "../utils/colors";
 import {
   CombineResult,
   CombineResultMetadata,
   CombineStat,
   CombineStats,
-  Position,
   orderedCombineKeys,
+  Position,
   positions,
 } from "../interfaces";
-import { GetServerSideProps } from "next";
-
-function mapVals<T, U>(map: Record<any, T>, f: (_: T) => U): Record<any, U> {
-  return Object.fromEntries(Object.entries(map).map(([k, v]) => [k, f(v)]));
-}
-
-function stringOrFirst(s: string | string[]): string {
-  if (typeof s === "string") {
-    return s;
-  }
-  return (s && s.length > 0 && s[0]) || "";
-}
+import {
+  mapVals,
+  parseInput,
+  stringOrFirst,
+  stringToColor,
+} from "../utils/core";
+import {
+  combineKeyMetadata,
+  combinePercentRank,
+  mostSimilarPlayers,
+} from "../utils/data";
 
 function getShareLink(player: CombineResult) {
   const baseUrl =
@@ -64,14 +57,6 @@ function getShareLink(player: CombineResult) {
     ].join("_"),
   };
   return `${baseUrl}?${new URLSearchParams(params).toString()}`;
-}
-
-function parseInput(val: string | number, precision = 0): number {
-  if (typeof val === "number") {
-    return val;
-  }
-
-  return parseFloat(parseFloat(val).toFixed(precision));
 }
 
 function parseQuery(query: Record<string, string | string[]>): CombineResult {
