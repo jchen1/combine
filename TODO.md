@@ -1,26 +1,28 @@
 # TODO
 
 - [ ] Share links
+  - [ ] social buttons
   - [x] Load from querystring
   - [x] Share button
-  - [ ] social buttons?
-- [ ] SEO
+- [x] SEO
   - [x] favicon
   - [x] lighthouse test (60...)
-  - [x] body copy
+  - [x] basic body copy
   - [x] google analytics
   - [x] og tags
   - [x] og image
 - [ ] Performance
   - [ ] load players via API, have loading screen or something
-  - [x] basic mobile styles
+  - [ ] swap to route-params & use [ISG](https://vercel.com/docs/next.js/incremental-static-regeneration) for faster homepage performance
+  - [ ] look at bundle size
 - [ ] Features
-  - [x] "find your most similar player"
   - [ ] "find your natural position"
   - [ ] compare against X
   - [ ] 40yd conversions
-  - [x] color changes on name entry
   - [ ] don't restart the animation on each update
   - [ ] get combine data for 2019, 2020, 2021
+  - [x] basic mobile styles
+  - [x] "find your most similar player"
+  - [x] color changes on name entry
   - [x] hide fields with val=0
   - [x] inputmode
