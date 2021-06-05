@@ -23,6 +23,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
     props: {
       player: parseSlug(slug) || defaultPlayer,
     },
+    revalidate: 60,
   };
 };
 
