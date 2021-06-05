@@ -13,7 +13,7 @@
   - [x] og image
 - [ ] Performance
   - [ ] load players via API, have loading screen or something
-  - [ ] swap to route-params & use [ISG](https://vercel.com/docs/next.js/incremental-static-regeneration) for faster homepage performance
+  - [x] swap to route-params & use [ISG](https://vercel.com/docs/next.js/incremental-static-regeneration) for faster homepage performance
   - [ ] look at bundle size
 - [ ] Features
   - [ ] "find your natural position"

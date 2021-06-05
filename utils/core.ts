@@ -3,14 +3,17 @@ export function parseInput(val: string | number, precision = 0): number {
     return val;
   }
 
-  return parseFloat(parseFloat(val).toFixed(precision));
+  const ret = parseFloat(parseFloat(val).toFixed(precision));
+  return ret === NaN ? 0 : ret;
 }
 
-export function mapVals<T, U>(
-  map: Record<any, T>,
-  f: (_: T) => U
-): Record<any, U> {
-  return Object.fromEntries(Object.entries(map).map(([k, v]) => [k, f(v)]));
+export function mapVals<Value, MappedValue, Key extends string>(
+  map: Record<Key, Value>,
+  f: (_v: Value, _k: Key) => MappedValue
+): Record<Key, MappedValue> {
+  const entries = Object.entries(map) as [Key, Value][];
+  const newEntries = entries.map(([k, v]) => [k, f(v, k)]);
+  return Object.fromEntries(newEntries);
 }
 
 export function stringOrFirst(s: string | string[]): string {

@@ -2,10 +2,14 @@ import data from "../assets/data.json";
 import percentiles from "../assets/percentiles.json";
 import {
   CombineResult,
+  CombineResultMetadata,
   CombineStat,
+  CombineStats,
+  isPosition,
   orderedCombineKeys,
   Position,
 } from "../interfaces";
+import { mapVals, parseInput } from "../utils/core";
 
 // Returns the value at a given percentile in a sorted numeric array.
 // "Linear interpolation between closest ranks" method
@@ -57,11 +61,12 @@ export function combinePercentRank(
 
   const key = `${field}.${position ? position : "ALL"}`;
   if (!cache[key]) {
+    console.error(`cache miss: ${key}`);
     cache[key] = combineData
       .filter(
         (datum) => datum[field] && (!position || position === datum.position)
       )
-      .map((datum) => datum[field] as number)
+      .map((datum) => datum[field])
       .sort((a, b) => a - b);
   }
 
@@ -156,4 +161,40 @@ export function mostSimilarPlayers(player: CombineResult) {
     }))
     .sort((a, b) => b.sim - a.sim)
     .slice(0, 10);
+}
+
+const meta: CombineResultMetadata = {
+  position: "WR",
+  player: "My Player",
+};
+const stats: CombineStats = mapVals(combineKeyMetadata, (m) => m.default);
+export const defaultPlayer: CombineResult = { ...meta, ...stats };
+
+export function parseSlug(slug: string): CombineResult | void {
+  const split = slug.split("_");
+  if (split.length !== 10) return;
+
+  const [position, player, ...rawStats] = split;
+
+  if (!isPosition(position)) {
+    return;
+  }
+
+  const meta: CombineResultMetadata = { position, player };
+
+  const stats: CombineStats = mapVals(combineKeyMetadata, (meta, field) => {
+    const precision = meta.precision || 0;
+    const index = orderedCombineKeys.indexOf(field);
+    const val = rawStats[index];
+
+    return parseInput(val, precision);
+  });
+
+  return { ...meta, ...stats };
+}
+
+export function toSlug(player: CombineResult): string {
+  return [player.position, player.player]
+    .concat(orderedCombineKeys.map((field) => player[field].toString()))
+    .join("_");
 }

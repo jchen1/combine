@@ -28,6 +28,10 @@ export const positions = [
 
 export type Position = typeof positions[number];
 
+export function isPosition(s: string): s is Position {
+  return positions.find((x) => x === s) !== undefined;
+}
+
 export const orderedCombineKeys = [
   "height",
   "weight",
