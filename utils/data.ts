@@ -48,6 +48,9 @@ function percentRank(arr: number[], v: number) {
 }
 
 export const combineData: CombineResult[] = data;
+export const combinePlayerToResult: Record<string, CombineResult> =
+  Object.fromEntries(combineData.map((d) => [d.player, d]));
+
 const cache: Record<string, number[]> = percentiles;
 
 export function combinePercentRank(

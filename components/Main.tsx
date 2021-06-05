@@ -1,4 +1,5 @@
 import {
+  AutoComplete,
   Button,
   Card,
   Divider,
@@ -24,6 +25,7 @@ import {
 } from "../interfaces";
 import { parseInput, stringOrFirst, stringToColor } from "../utils/core";
 import {
+  combinePlayerToResult,
   combineKeyMetadata,
   combinePercentRank,
   mostSimilarPlayers,
@@ -94,6 +96,9 @@ const NumericInput = ({ field, value, setValue }: NumericInputProps) => {
 const Main = ({ initialPlayer }: { initialPlayer: CombineResult }) => {
   const { copy } = useClipboard();
   const [, setToast] = useToasts();
+
+  const [extraPlayers, setExtraPlayers] = useState<CombineResult[]>([]);
+  const [searchResults, setSearchResults] = useState<string[]>([]);
 
   const [comparePlayers, setComparePlayers] = useState(true);
 
@@ -178,13 +183,15 @@ const Main = ({ initialPlayer }: { initialPlayer: CombineResult }) => {
 
   const data = {
     labels: availableKeys.map((k) => combineKeyMetadata[k].label),
-    datasets: [playerToGraphData(player, availableKeys)].concat(
-      comparePlayers
-        ? mostSimilarPlayers(player)
-            .slice(0, 3)
-            .map((p) => playerToGraphData(p, availableKeys))
-        : []
-    ),
+    datasets: [playerToGraphData(player, availableKeys)]
+      .concat(
+        comparePlayers
+          ? mostSimilarPlayers(player)
+              .slice(0, 3)
+              .map((p) => playerToGraphData(p, availableKeys))
+          : []
+      )
+      .concat(extraPlayers.map((p) => playerToGraphData(p, availableKeys))),
   };
 
   const options = {
@@ -206,8 +213,44 @@ const Main = ({ initialPlayer }: { initialPlayer: CombineResult }) => {
           },
         },
       },
+      legend: {
+        // todo: type this
+        onClick: (_e: any, legendItem: any, legend: any) => {
+          extraPlayers.forEach((player) => {
+            const playerLabel = `${player.player} (${player.position})`;
+            if (legendItem.text === playerLabel) {
+              setExtraPlayers((players) =>
+                players.filter((p) => p.player !== player.player)
+              );
+            }
+          });
+
+          // default handler
+          const index = legendItem.datasetIndex;
+          const ci = legend.chart;
+          if (ci.isDatasetVisible(index)) {
+            ci.hide(index);
+            legendItem.hidden = true;
+          } else {
+            ci.show(index);
+            legendItem.hidden = false;
+          }
+        },
+      },
     },
   };
+
+  const searchHandler = (currentValue?: string) => {
+    if (!currentValue || currentValue.length < 3) return setSearchResults([]);
+
+    const query = currentValue.toLowerCase().trim();
+    const results = Object.keys(combinePlayerToResult).filter((player) =>
+      player.toLowerCase().includes(query)
+    );
+
+    return setSearchResults(results);
+  };
+
   return (
     <Layout title="NFL Combine Comparator">
       <Text h1>NFL Combine Comparator</Text>
@@ -216,16 +259,39 @@ const Main = ({ initialPlayer }: { initialPlayer: CombineResult }) => {
       <Grid.Container gap={2} justify="center" wrap="wrap" id="main">
         <Grid xs={24} md={16} id="chart">
           <Card>
-            <Row align="middle" justify="center">
-              <Toggle
-                checked={comparePlayers}
-                size="large"
-                onChange={(_e) => setComparePlayers(!comparePlayers)}
-              />
-              <Spacer x={0.5} />
-              <Text>Show comparable players</Text>
-            </Row>
-            <Radar type="radar" data={data} options={options} />
+            <Grid.Container
+              alignItems="center"
+              justify="center"
+              style={{ height: "100%" }}
+            >
+              <Radar type="radar" data={data} options={options} />
+              <div>
+                <Row align="middle" justify="center">
+                  <Toggle
+                    checked={comparePlayers}
+                    size="large"
+                    onChange={(_e) => setComparePlayers(!comparePlayers)}
+                  />
+                  <Spacer x={0.5} />
+                  <Text>Show most similar players</Text>
+                </Row>
+                <Row align="middle" justify="center">
+                  <Text>Compare with: </Text>
+                  <Spacer x={1} />
+                  <AutoComplete
+                    options={searchResults.map((x) => ({ label: x, value: x }))}
+                    placeholder="Search"
+                    onSearch={searchHandler}
+                    onSelect={(name) => {
+                      if (!extraPlayers.map((p) => p.player).includes(name)) {
+                        const player = combinePlayerToResult[name];
+                        setExtraPlayers((players) => players.concat(player));
+                      }
+                    }}
+                  />
+                </Row>
+              </div>
+            </Grid.Container>
           </Card>
         </Grid>
         <Grid xs={24} md={8} id="input">
